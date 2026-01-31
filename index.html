@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI LEX - Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: #ffffff;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid #d1d5db;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .menu-section {
+            padding: 16px;
+        }
+
+        .menu-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            padding: 0 8px;
+        }
+
+        .menu-item {
+            padding: 12px 12px;
+            margin: 4px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #f3f4f6;
+        }
+
+        .menu-item.active {
+            background: #f0f0f0;
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .icon-general {
+            background: #dbeafe;
+            color: #0284c7;
+        }
+
+        .icon-legal-assistant {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .icon-legal-research {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .chats-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 12px;
+        }
+
+        .chat-history-item {
+            padding: 10px 12px;
+            margin: 4px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background 0.2s;
+        }
+
+        .chat-history-item:hover {
+            background: #f3f4f6;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid #d1d5db;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .plan-badge {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #a78bfa;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .message-avatar.ai {
+            background: #14b8a6;
+        }
+
+        .message-avatar.user {
+            background: #a78bfa;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+            font-size: 15px;
+            color: #1f2937;
+        }
+
+        .message.ai .message-content {
+            background: #f3f4f6;
+            border-radius: 12px;
+        }
+
+        .message.user .message-content {
+            background: #7c3aed;
+            color: white;
+            border-radius: 12px;
+        }
+
+        .message.error .message-content {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .input-area {
+            padding: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .send-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #14b8a6;
+            border: none;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            background: #0d9488;
+        }
+
+        .send-button:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <button class="new-chat-btn">
+                    <span>+</span>
+                    <span>New chat</span>
+                </button>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Assistants</div>
+                <div class="menu-item active">
+                    <div class="menu-icon icon-general">◉</div>
+                    <span>General</span>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon icon-legal-assistant">⚖</div>
+                    <span>Legal Assistant</span>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon icon-legal-research">📚</div>
+                    <span>Legal Research</span>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Your Chats</div>
+                <div class="chats-container">
+                    <div class="chat-history-item">Define intellectual property</div>
+                    <div class="chat-history-item">Contract review tips</div>
+                    <div class="chat-history-item">Employment law basics</div>
+                    <div class="chat-history-item">Tax implications explained</div>
+                    <div class="chat-history-item">Previous conversation</div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div>Legal AI</div>
+                <div class="plan-badge">Free Plan</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chat-header">
+                <button class="user-button">HI</button>
+                <button class="user-button">U</button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai">
+                    <div class="message-avatar ai">AI</div>
+                    <div class="message-content">
+                        Hello! I'm AI LEX, your legal assistant. How can I help you today? I can assist with contract review, legal research, document drafting, and general legal questions.
+                    </div>
+                </div>
+
+                <div class="message user">
+                    <div class="message-content">What are the main clauses in a standard employment contract?</div>
+                    <div class="message-avatar user">U</div>
+                </div>
+
+                <div class="message ai">
+                    <div class="message-avatar ai">AI</div>
+                    <div class="message-content">
+                        A standard employment contract typically includes:<br><br>
+                        <strong>1. Job Title & Responsibilities:</strong> Clearly defines the position and duties<br><br>
+                        <strong>2. Compensation:</strong> Salary, benefits, and payment schedule<br><br>
+                        <strong>3. Term & Termination:</strong> Employment period and notice requirements<br><br>
+                        <strong>4. Confidentiality:</strong> Protects proprietary information<br><br>
+                        <strong>5. Non-Compete:</strong> Restrictions on working for competitors<br><br>
+                        <strong>6. Intellectual Property:</strong> Ownership of work created during employment<br><br>
+                        Would you like me to explain any of these clauses in more detail?
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        class="input-field" 
+                        id="messageInput" 
+                        placeholder="Ask anything..."
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button class="send-button" id="sendButton" onclick="sendMessage()">▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Mock AI responses
+        const mockResponses = [
+            "That's a great question. In the legal field, it's important to consider all aspects of the matter. Could you provide more details?",
+            "Based on common legal practice, I'd recommend reviewing the relevant statutes and case law. Would you like me to elaborate on any specific area?",
+            "This is an important consideration. Different jurisdictions may have varying requirements. Can you specify your location?",
+            "Interesting point. Let me break this down into key components for better understanding...",
+            "That relates to several important legal principles. I'd suggest consulting with a specialist in this area for personalized advice."
+        ];
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            messageInput.value = '';
+
+            // Simulate AI response with delay
+            setTimeout(() => {
+                const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+                addMessage(randomResponse, 'ai');
+            }, 500);
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `message-avatar ${sender}`;
+            avatarDiv.textContent = sender === 'user' ? 'U' : 'AI';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = text;
+
+            if (sender === 'user') {
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(avatarDiv);
+            } else {
+                messageDiv.appendChild(avatarDiv);
+                messageDiv.appendChild(contentDiv);
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Menu item click handlers
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Chat history click handlers
+        document.querySelectorAll('.chat-history-item').forEach(item => {
+            item.addEventListener('click', function() {
+                chatMessages.innerHTML = '';
+                addMessage('Chat loaded: ' + this.textContent, 'ai');
+            });
+        });
+
+        // New chat button
+        document.querySelector('.new-chat-btn').addEventListener('click', function() {
+            chatMessages.innerHTML = '';
+            addMessage("Hello! I'm AI LEX. How can I help you today?", 'ai');
+        });
+    </script>
+</body>
+</html>
